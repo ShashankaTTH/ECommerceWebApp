@@ -1,0 +1,391 @@
+﻿@page "/GetItems"
+@rendermode InteractiveServer
+
+<PageTitle>Purchase</PageTitle>
+<h3>Purchase</h3>
+
+@* Import Bootstrap Styles *@
+<style>
+    .item-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+        padding: 20px;
+    }
+
+    .item-card {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 10px;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+        background-color: #fff;
+        height: 20rem;
+    }
+
+        .item-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+    .item-image {
+        width: 320px;
+        height: 250px;
+        object-fit: cover;
+        margin-right: 20px;
+        border-radius: 8px;
+    }
+
+    .item-details {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        padding: 0.5rem;
+        height: 19rem;
+    }
+
+        .item-details h4 {
+            margin: 0 0 10px;
+            font-size: 18px;
+            color: #333;
+        }
+
+        .item-details p {
+            margin: 0 0 10px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .item-details .price {
+            font-size: 16px;
+            font-weight: bold;
+            color: #007bff;
+        }
+
+    .add-item-btn {
+        position: absolute;
+        top: 40px;
+        right: 40px;
+        font-size: 25px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 5px 15px;
+        cursor: pointer;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .pagination {
+        display: flex;
+        justify-content: center;
+        margin-top: 20px;
+    }
+
+        .pagination button {
+            padding: 5px 10px;
+            margin: 0 5px;
+            cursor: pointer;
+            border: transparent;
+        }
+
+        .pagination .active {
+            background-color: #007bff;
+            color: white;
+        }
+</style>
+
+<!-- Add Item Button -->
+@* <button class="add-item-btn" @onclick="OpenAddItemPopup"> *@
+    <button class="btn btn-primary" @onclick="OpenAddItemPopup">
+    +
+</button>
+
+<div class="item-grid">
+    @foreach (var item in PaginatedItems)
+    {
+        <div class="col-sm-6 col-md-3 mb-4">
+            <div class="card" style="width: 16rem; padding: 0.5rem;">
+                <img src="@item.IMAGE_URL" class="card-img-top" alt="@item.NAME" style="height: 8rem; object-fit: cover;">
+                <div class="card-body" style="padding: 0.5rem;">
+                    <h6 class="card-title" style="font-size: 1rem;">@item.NAME</h6>
+                    <p class="card-text" style="font-size: 0.9rem; color: #555;">@item.DESCRIPTION</p>
+                    <p class="card-text"><strong>Price:</strong> $@item.PRICE</p>
+                    <button class="btn btn-sm btn-primary" @onclick="()=>OpenPopup(item)">View Product</button>
+
+                    @*  <button class="btn btn-sm btn-primary" @onclick="chit">Buy Now</button> *@
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Pagination Controls -->
+<div class="pagination">
+    <button @onclick="GoToPreviousPage" disabled="@(!CanGoBack)">&#8592;</button>
+    @for (int i = 1; i <= TotalPages; i++)
+    {
+        <button @onclick="() => GoToPage(i)" class="@(i == CurrentPage ? "active" : "")">@i</button>
+    }
+    <button @onclick="GoToNextPage" disabled="@(!CanGoForward)">&#8594;</button>
+</div>
+
+@if (ShowPopup)
+{
+    <div class="modal fade show d-block" tabindex="-1" role="dialog" style="background: rgba(0, 0, 0, 0.6);">
+        <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <!-- Modal Header -->
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">Product details</h5>
+                    <button type="button" class="btn-close" @onclick="ClosePopup" aria-label="Close"></button>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="modal-body">
+                    <div class="row">
+                        <!-- Left: Product Image -->
+                        <div class="col-md-6 text-center">
+                            <img src="@SelectedItem.IMAGE_URL" alt="@SelectedItem.NAME" class="img-fluid rounded mb-3" style="max-height: 300px;" />
+                           
+                                <h5 class="modal-title">Product Name: @SelectedItem.NAME</h5>
+                            
+                        </div>
+                       
+
+                        <!-- Right: Product Details -->
+                        <div class="col-md-6">
+                            <h5>Description</h5>
+                            <p>@SelectedItem.DESCRIPTION</p>
+
+                            <h5>Price: <strong>@SelectedItem.PRICE</strong></h5>
+
+                            <h5>Select Quantity</h5>
+                            <div class="d-flex align-items-center mb-4">
+                                <button class="btn btn-outline-secondary" @onclick="DecreaseQuantity">-</button>
+                                <span class="fs-4 mx-3">@Quantity</span>
+                                <button class="btn btn-outline-secondary" @onclick="IncreaseQuantity">+</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="modal-footer d-flex justify-content-between">
+                    <button class="btn btn-primary" @onclick="AddToCart">Add to Cart</button>
+                   @*  <button class="btn btn-secondary" style="margin-right:30rem;" @onclick="removeItem">Remove Product</button> *@
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+
+@if (ShowAddItemPopup)
+{
+    <div class="modal fade show d-block" tabindex="-1" role="dialog" style="background: rgba(0, 0, 0, 0.6);">
+        <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <!-- Modal Header -->
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">Add New Item</h5>
+                    <button type="button" class="btn-close" @onclick="CloseAddItemPopup" aria-label="Close"></button>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="modal-body">
+                    <div class="row">
+                        <!-- Left: Input fields -->
+                        <div class="col-md-7">
+                            <div class="mb-3">
+                                <h5>Item Name</h5>
+                                <input type="text" class="form-control" @bind="NewItemName" placeholder="Enter item name" />
+                            </div>
+                            <div class="mb-3">
+                                <h5>Item Description <small>(max 200 characters)</small></h5>
+                                <input type="text" class="form-control" @bind="NewItemDescription" placeholder="Enter item description" maxlength="200" />
+                            </div>
+                            <div class="mb-3">
+                                <h5>Item Price</h5>
+                                <input type="number" class="form-control" @bind="NewItemPrice" placeholder="Enter item price" min="0" step="0.01" />
+                            </div>
+                        </div>
+
+                        <!-- Right: Upload Image -->
+                        <div class="col-md-5 text-center">
+                            <h5>Upload Image</h5>
+                            <input type="file" class="form-control mb-3" @onchange="OnImageSelected" />
+                           @*  <img src="@SelectedImagePreview" alt="Item Image" class="img-fluid rounded" style="max-height: 200px; display: block; margin: 10px auto;" /> *@
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="modal-footer d-flex justify-content-between">
+                   @*  <button class="btn btn-primary" @onclick="SubmitNewItem">Submit</button> *@
+                    <button class="btn btn-primary" @onclick="SubmitNewItem">Submit</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+
+@code {
+    private List<Item> Items = new();
+    private Item? SelectedItem = null;
+    private bool ShowPopup = false;
+    private int Quantity = 1;
+    private bool ShowAddItemPopup = false;
+
+    private string? NewItemName { get; set; }
+    private string? NewItemDescription { get; set; }
+    private string? NewItemImage { get; set; }
+    private string? NewItemPrice { get; set; }
+
+    private int CurrentPage { get; set; } = 1;
+    private int ItemsPerPage { get; set; } = 6;
+
+    // Calculate total pages based on the number of items
+    private int TotalPages => (int)Math.Ceiling(Items.Count / (double)ItemsPerPage);
+
+    // Paginated items based on the current page
+    private List<Item> PaginatedItems => Items.Skip((CurrentPage - 1) * ItemsPerPage).Take(ItemsPerPage).ToList();
+
+    // Check if we can go back or forward in pagination
+    private bool CanGoBack => CurrentPage > 1;
+    private bool CanGoForward => CurrentPage < TotalPages;
+
+    [Inject]
+    public ItemRepository ItemRepository1 { get; set; }
+
+    protected override void OnInitialized()
+    {
+        var obj = ItemRepository1.GetItems();
+        foreach (var i in obj)
+        {
+            Items.Add(new Item
+                {
+                    ITEM_ID = i.ITEM_ID,
+                    NAME = i.NAME,
+                    DESCRIPTION = i.DESCRIPTION,
+                    PRICE = i.PRICE,
+                    IMAGE_URL = ItemRepository1.getItemImageById(i.ITEM_ID)
+                });
+        }
+    }
+
+    // Open item details popup
+    private void OpenPopup(Item item)
+    {
+        SelectedItem = item;
+        ShowPopup = true;
+        Quantity = 1;
+    }
+
+    // Close item details popup
+    private void ClosePopup()
+    {
+        ShowPopup = false;
+    }
+
+    // Add item to cart
+    private void AddToCart()
+    {
+        ItemRepository1.AddToCart(new CartItem
+            {
+                ITEM_ID = SelectedItem.ITEM_ID,
+                NAME = SelectedItem.NAME,
+                IMAGE_URL = SelectedItem.IMAGE_URL,
+                QUANTITY = Quantity
+            });
+
+        Console.WriteLine($"Added {SelectedItem.NAME} (Quantity: {Quantity}) to cart.");
+        ShowPopup = false;
+    }
+
+    // Quantity management
+    private void IncreaseQuantity()
+    {
+        Quantity++;
+    }
+
+    private void DecreaseQuantity()
+    {
+        if (Quantity > 1)
+        {
+            Quantity--;
+        }
+    }
+
+    // Open add item popup
+    private void OpenAddItemPopup()
+    {
+        ShowAddItemPopup = true;
+    }
+
+    // Close add item popup
+    private void CloseAddItemPopup()
+    {
+        ShowAddItemPopup = false;
+    }
+
+    // Image selection event handler
+    private async Task OnImageSelected(ChangeEventArgs e)
+    {
+        var file = (IBrowserFile)e.Value;
+        if (file != null)
+        {
+            NewItemImage = file.Name; // For now, just store the name
+        }
+    }
+
+    // Submit new item to the repository
+    private void SubmitNewItem()
+    {
+        if (string.IsNullOrEmpty(NewItemName) || string.IsNullOrEmpty(NewItemDescription))
+        {
+            Console.WriteLine("Please fill in all fields.");
+            return;
+        }
+
+        var newItem = new Item
+            {
+                NAME = NewItemName,
+                DESCRIPTION = NewItemDescription,
+                IMAGE_URL = NewItemImage // Placeholder for the uploaded image URL
+            };
+
+        ItemRepository1.AddItem(newItem);
+        Items.Add(newItem);
+        Console.WriteLine($"New item added: {newItem.NAME}");
+        ShowAddItemPopup = false;
+    }
+
+    // Pagination logic
+    private void GoToPage(int page)
+    {
+        if (page >= 1 && page <= TotalPages)
+        {
+            CurrentPage = page;
+        }
+    }
+
+    private void GoToPreviousPage()
+    {
+        if (CanGoBack)
+        {
+            CurrentPage--;
+        }
+    }
+
+    private void GoToNextPage()
+    {
+        if (CanGoForward)
+        {
+            CurrentPage++;
+        }
+    }
+}
