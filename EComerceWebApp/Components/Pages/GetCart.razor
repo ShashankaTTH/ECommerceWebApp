@@ -1,0 +1,203 @@
+﻿<h3>GetCart</h3>
+@page "/GetCartItems"
+
+@rendermode InteractiveServer
+@using System.Data;
+@inject IJSRuntime JSRuntime;
+
+@* Import Bootstrap Styles *@
+
+<script>
+    function showAlert(){
+        alert("Item Removed from cart.");
+        window.location.reload();
+    }
+</script>
+<style>
+    .item-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    padding: 20px;
+    }
+
+    .item-card {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 10px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    background-color: #fff;
+    height: 20rem;
+    }
+
+    .item-card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .item-image {
+    width: 320px;
+    height: 250px;
+    object-fit: cover;
+    margin-right: 20px;
+    border-radius: 8px;
+    }
+
+    .item-details {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    padding: 0.5rem;
+    height: 19rem;
+    }
+
+    .item-details h4 {
+    margin: 0 0 10px;
+    font-size: 18px;
+    color: #333;
+    }
+
+    .item-details p {
+    margin: 0 0 10px;
+    font-size: 14px;
+    color: #666;
+    }
+
+    .item-details .price {
+    font-size: 16px;
+    font-weight: bold;
+    color: #007bff;
+    }
+
+    .add-item-btn {
+    position: absolute;
+    top: 40px;
+    right: 40px;
+    font-size: 25px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 5px 15px;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+    }
+
+    .pagination button {
+    padding: 5px 10px;
+    margin: 0 5px;
+    cursor: pointer;
+    border: transparent;
+    }
+
+    .pagination .active {
+    background-color: #007bff;
+    color: white;
+    }
+
+    .card {
+    position: sticky;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    word-wrap: break-word;
+    background-color: #fff;
+    background-clip: border-box;
+    border: 1px solid rgba(0, 0, 0, .125);
+    border-radius: .25rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+    padding: 10px;
+    cursor: pointer;
+    }
+
+    .card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .description {
+    max-width: 29rem; 
+    height: auto; 
+    overflow-wrap: break-word; 
+    word-wrap: break-word; 
+    line-height: 1.2rem;
+    height: 3rem; 
+    }
+
+</style>
+
+<div class="item-grid">
+    @foreach (var item in Items)
+    {
+        <div class="col-sm-6 col-md-3 mb-4">
+            <div class="card" style="width: 30rem; padding: 0.5rem;">
+                <img src="@item.IMAGE_URL" class="card-img-top" alt="@item.NAME" style="height: 15rem; object-fit: fill;">
+                <div class="card-body" style="padding: 0.5rem;">
+                    <h6 class="card-title" style="font-size: 1rem;">@item.NAME</h6>
+                 
+                    <p class="card-text description" style="font-size: 0.9rem; color: #555;">
+                        @item.DESCRIPTION
+                    </p>
+                    <p class="card-text" style="font-size: 0.9rem; color: #555;">Added Quantity: @item.QUANTITY</p>
+
+                    <button class="btn btn-danger btn-sm mt-2" @onclick="()=>removeItem(item.ITEM_ID)">Remove</button>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private List<GetCartItem> cartItems = new();
+    private int CurrentPage { get; set; } = 1;
+    private int ItemsPerPage { get; set; } = 6;
+  
+    private List<GetCartItem> Items = new();
+
+
+
+    [Inject]
+    public ApiService apiService { get; set; }
+
+    protected override void OnInitialized()
+    {
+
+        DataTable dtTemp = apiService.GetDataTableDynamically("cartItems");
+
+        if (dtTemp.Rows.Count > 0)
+        {
+            foreach (DataRow dr in dtTemp.Rows)
+            {
+                Items.Add(new GetCartItem
+                    {
+                        ITEM_ID = dr["itemId"].ToString(),
+                        NAME = dr["name"].ToString(),
+                        DESCRIPTION = dr["description"].ToString(),
+                        QUANTITY = dr["quantity"].ToString(),
+                        IMAGE_URL = dr["imageUrl"].ToString()
+                    });
+            }
+
+
+        }
+    }
+
+    private void removeItem(string id){
+
+        bool isDeleted = apiService.SendReqToDeleteApi(Convert.ToInt32(id), "deleteCartItem");
+        
+        if(isDeleted){
+            JSRuntime.InvokeVoidAsync("showAlert");
+        }
+    }
+}
+

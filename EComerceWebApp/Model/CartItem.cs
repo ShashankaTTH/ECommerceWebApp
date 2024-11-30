@@ -4,7 +4,17 @@
     {
         public int ITEM_ID { get; set; }
         public string NAME { get; set; }
+        public string DESCRIPTION { get; set; }
         public string IMAGE_URL { get; set; }
         public int QUANTITY { get; set; }
+    }
+
+    public class GetCartItem
+    {
+        public string ITEM_ID { get; set; }
+        public string NAME { get; set; }
+        public string DESCRIPTION { get; set; }
+        public string IMAGE_URL { get; set; }
+        public string QUANTITY { get; set; }
     }
 }

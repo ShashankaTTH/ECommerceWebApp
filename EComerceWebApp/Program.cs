@@ -1,5 +1,7 @@
+using EComerceWebApp;
 using EComerceWebApp.Components;
 using EComerceWebApp.Components.Pages;
+
 using Microsoft.Extensions.FileProviders;
 
 
@@ -10,7 +12,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-builder.Services.AddScoped<ItemRepository>();
+
+
+builder.Services.AddScoped<ApiService>();
+
 
 var app = builder.Build();
 

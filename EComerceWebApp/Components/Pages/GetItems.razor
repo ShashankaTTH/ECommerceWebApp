@@ -1,136 +1,215 @@
 ﻿@page "/GetItems"
 @rendermode InteractiveServer
+@using Newtonsoft.Json;
+@using System.Data;
+@inject IJSRuntime JSRuntime;
 
 <PageTitle>Purchase</PageTitle>
 <h3>Purchase</h3>
+@using Microsoft.AspNetCore.Components.Forms
 
 @* Import Bootstrap Styles *@
+
+<script>
+
+    function showAlertI(flg) {
+       if(flg === "newItem"){
+           alert("New Item added Successfully");
+            window.location.reload();
+       }
+       else{
+           alert("Item Added to cart");
+           //window.location.reload();
+       }
+    }
+
+    //     function showAlerts(message) {
+    //     const alertDiv = document.createElement('div');
+    //     alertDiv.textContent = message;
+    //     alertDiv.style.position = 'fixed';
+    //     alertDiv.style.bottom = '60px';
+    //     alertDiv.style.right = '20px';
+    //     alertDiv.style.backgroundColor = 'green';
+    //     alertDiv.style.color = 'white';
+    //     alertDiv.style.padding = '10px';
+    //     alertDiv.style.borderRadius = '5px';
+    //     alertDiv.style.zIndex = '1000';
+    //     alertDiv.style.opacity = '1';
+    //     alertDiv.style.transition = 'opacity 0.5s ease';
+    //     document.body.appendChild(alertDiv);
+    //     Fade out after a few seconds
+
+    //     setTimeout(() => {
+    //         alertDiv.style.opacity = '0';
+    //         setTimeout(() => {
+    //             document.body.removeChild(alertDiv);
+    //         }, 5000);
+    //     }, 2000); Adjust time as needed
+    // }
+
+    function showAlert(){
+        alert("Item Removed from Store");
+        window.location.reload();
+    }
+</script>
 <style>
     .item-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 20px;
-        padding: 20px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    padding: 20px;
     }
 
     .item-card {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        padding: 10px;
-        cursor: pointer;
-        transition: transform 0.2s, box-shadow 0.2s;
-        background-color: #fff;
-        height: 20rem;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 10px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    background-color: #fff;
+    height: 20rem;
     }
 
-        .item-card:hover {
-            transform: scale(1.05);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
+    .item-card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
 
     .item-image {
-        width: 320px;
-        height: 250px;
-        object-fit: cover;
-        margin-right: 20px;
-        border-radius: 8px;
+    width: 320px;
+    height: 250px;
+    object-fit: cover;
+    margin-right: 20px;
+    border-radius: 8px;
     }
 
     .item-details {
-        display: flex;
-        flex-direction: column;
-        flex: 1;
-        padding: 0.5rem;
-        height: 19rem;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    padding: 0.5rem;
+    height: 19rem;
     }
 
-        .item-details h4 {
-            margin: 0 0 10px;
-            font-size: 18px;
-            color: #333;
-        }
+    .item-details h4 {
+    margin: 0 0 10px;
+    font-size: 18px;
+    color: #333;
+    }
 
-        .item-details p {
-            margin: 0 0 10px;
-            font-size: 14px;
-            color: #666;
-        }
+    .item-details p {
+    margin: 0 0 10px;
+    font-size: 14px;
+    color: #666;
+    }
 
-        .item-details .price {
-            font-size: 16px;
-            font-weight: bold;
-            color: #007bff;
-        }
+    .item-details .price {
+    font-size: 16px;
+    font-weight: bold;
+    color: #007bff;
+    }
 
     .add-item-btn {
-        position: absolute;
-        top: 40px;
-        right: 40px;
-        font-size: 25px;
-        background-color: #007bff;
-        color: white;
-        border: none;
-        padding: 5px 15px;
-        cursor: pointer;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    position: absolute;
+    top: 40px;
+    right: 40px;
+    font-size: 25px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 5px 15px;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     }
 
     .pagination {
-        display: flex;
-        justify-content: center;
-        margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
     }
 
-        .pagination button {
-            padding: 5px 10px;
-            margin: 0 5px;
-            cursor: pointer;
-            border: transparent;
-        }
+    .pagination button {
+    padding: 5px 10px;
+    margin: 0 5px;
+    cursor: pointer;
+    border: transparent;
+    }
 
-        .pagination .active {
-            background-color: #007bff;
-            color: white;
-        }
+    .pagination .active {
+    background-color: #007bff;
+    color: white;
+    }
+
+    .card {
+    position: sticky;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    word-wrap: break-word;
+    background-color: #fff;
+    background-clip: border-box;
+    border: 1px solid rgba(0, 0, 0, .125);
+    border-radius: .25rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+    padding: 10px;
+    cursor: pointer;
+    }
+
+    .card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .description {
+        max-width: 29rem; 
+        height: auto; 
+        overflow-wrap: break-word; 
+        word-wrap: break-word; 
+        line-height: 1.2rem;
+        height:3rem;
+    }
+
 </style>
 
 <!-- Add Item Button -->
 @* <button class="add-item-btn" @onclick="OpenAddItemPopup"> *@
-    <button class="btn btn-primary" @onclick="OpenAddItemPopup">
+<button class="add-item-btn" @onclick="OpenAddItemPopup">
     +
 </button>
 
 <div class="item-grid">
-    @foreach (var item in PaginatedItems)
+    @foreach (var item in AllItems)
     {
         <div class="col-sm-6 col-md-3 mb-4">
-            <div class="card" style="width: 16rem; padding: 0.5rem;">
-                <img src="@item.IMAGE_URL" class="card-img-top" alt="@item.NAME" style="height: 8rem; object-fit: cover;">
+            <div class="card" style="width: 30rem; padding: 0.5rem;">
+                <img src="@item.IMAGE_URL" class="card-img-top" alt="@item.NAME" style="height: 15rem;object-fit: fill;">
                 <div class="card-body" style="padding: 0.5rem;">
                     <h6 class="card-title" style="font-size: 1rem;">@item.NAME</h6>
-                    <p class="card-text" style="font-size: 0.9rem; color: #555;">@item.DESCRIPTION</p>
+                    <p class="card-text description" style="font-size: 0.9rem; color: #555;">
+                        @item.DESCRIPTION
+                    </p>
                     <p class="card-text"><strong>Price:</strong> $@item.PRICE</p>
                     <button class="btn btn-sm btn-primary" @onclick="()=>OpenPopup(item)">View Product</button>
 
-                    @*  <button class="btn btn-sm btn-primary" @onclick="chit">Buy Now</button> *@
+                    <button class="btn btn-sm btn-danger" @onclick="()=>removeItem(item.ITEM_ID)">Remove Product</button>
                 </div>
             </div>
         </div>
     }
 </div>
 
-<!-- Pagination Controls -->
-<div class="pagination">
+@* <!-- Pagination Controls -->
+<div class="pagination" style="padding-bottom: 3rem;">
     <button @onclick="GoToPreviousPage" disabled="@(!CanGoBack)">&#8592;</button>
     @for (int i = 1; i <= TotalPages; i++)
     {
         <button @onclick="() => GoToPage(i)" class="@(i == CurrentPage ? "active" : "")">@i</button>
     }
     <button @onclick="GoToNextPage" disabled="@(!CanGoForward)">&#8594;</button>
-</div>
+</div> *@
 
 @if (ShowPopup)
 {
@@ -149,16 +228,16 @@
                         <!-- Left: Product Image -->
                         <div class="col-md-6 text-center">
                             <img src="@SelectedItem.IMAGE_URL" alt="@SelectedItem.NAME" class="img-fluid rounded mb-3" style="max-height: 300px;" />
-                           
-                                <h5 class="modal-title">Product Name: @SelectedItem.NAME</h5>
-                            
+
+                            <h5 class="modal-title">Product Name: @SelectedItem.NAME</h5>
+
                         </div>
-                       
+
 
                         <!-- Right: Product Details -->
                         <div class="col-md-6">
                             <h5>Description</h5>
-                            <p>@SelectedItem.DESCRIPTION</p>
+                            <p style="width: 22rem; height: 7rem;">@SelectedItem.DESCRIPTION</p>
 
                             <h5>Price: <strong>@SelectedItem.PRICE</strong></h5>
 
@@ -172,10 +251,10 @@
                     </div>
                 </div>
 
-                <!-- Modal Footer -->
+              
                 <div class="modal-footer d-flex justify-content-between">
                     <button class="btn btn-primary" @onclick="AddToCart">Add to Cart</button>
-                   @*  <button class="btn btn-secondary" style="margin-right:30rem;" @onclick="removeItem">Remove Product</button> *@
+                    @*  <button class="btn btn-secondary" style="margin-right:30rem;" @onclick="removeItem">Remove Product</button> *@
                 </div>
             </div>
         </div>
@@ -188,24 +267,24 @@
     <div class="modal fade show d-block" tabindex="-1" role="dialog" style="background: rgba(0, 0, 0, 0.6);">
         <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
             <div class="modal-content">
-                <!-- Modal Header -->
+               
                 <div class="modal-header bg-primary text-white">
                     <h5 class="modal-title">Add New Item</h5>
                     <button type="button" class="btn-close" @onclick="CloseAddItemPopup" aria-label="Close"></button>
                 </div>
 
-                <!-- Modal Body -->
+               
                 <div class="modal-body">
                     <div class="row">
-                        <!-- Left: Input fields -->
+                       
                         <div class="col-md-7">
                             <div class="mb-3">
                                 <h5>Item Name</h5>
                                 <input type="text" class="form-control" @bind="NewItemName" placeholder="Enter item name" />
                             </div>
                             <div class="mb-3">
-                                <h5>Item Description <small>(max 200 characters)</small></h5>
-                                <input type="text" class="form-control" @bind="NewItemDescription" placeholder="Enter item description" maxlength="200" />
+                                <h5>Item Description (max 200 characters)</h5>
+                                <input type="text" class="form-control" @bind="NewItemDescription" placeholder="Enter item description" maxlength="100" />
                             </div>
                             <div class="mb-3">
                                 <h5>Item Price</h5>
@@ -213,18 +292,18 @@
                             </div>
                         </div>
 
-                        <!-- Right: Upload Image -->
+                      
                         <div class="col-md-5 text-center">
                             <h5>Upload Image</h5>
-                            <input type="file" class="form-control mb-3" @onchange="OnImageSelected" />
-                           @*  <img src="@SelectedImagePreview" alt="Item Image" class="img-fluid rounded" style="max-height: 200px; display: block; margin: 10px auto;" /> *@
+                            <InputFile OnChange="OnImageSelected" class="form-control" />
+                            @*  <img src="@SelectedImagePreview" alt="Item Image" class="img-fluid rounded" style="max-height: 200px; display: block; margin: 10px auto;" /> *@
                         </div>
                     </div>
                 </div>
 
-                <!-- Modal Footer -->
+              
                 <div class="modal-footer d-flex justify-content-between">
-                   @*  <button class="btn btn-primary" @onclick="SubmitNewItem">Submit</button> *@
+                    @*  <button class="btn btn-primary" @onclick="SubmitNewItem">Submit</button> *@
                     <button class="btn btn-primary" @onclick="SubmitNewItem">Submit</button>
                 </div>
             </div>
@@ -234,7 +313,8 @@
 
 
 @code {
-    private List<Item> Items = new();
+    private List<Item> Items = new(); //private List<Item> Items = new();
+    private List<AddNewItem> Item = new();
     private Item? SelectedItem = null;
     private bool ShowPopup = false;
     private int Quantity = 1;
@@ -242,42 +322,48 @@
 
     private string? NewItemName { get; set; }
     private string? NewItemDescription { get; set; }
-    private string? NewItemImage { get; set; }
+    private static string? NewItemImage { get; set; }
+    private IFormFile? AddItemImage { get; set; }
     private string? NewItemPrice { get; set; }
 
     private int CurrentPage { get; set; } = 1;
     private int ItemsPerPage { get; set; } = 6;
 
-    // Calculate total pages based on the number of items
-    private int TotalPages => (int)Math.Ceiling(Items.Count / (double)ItemsPerPage);
+    private Shashank<Item> AllItems = new();
 
-    // Paginated items based on the current page
-    private List<Item> PaginatedItems => Items.Skip((CurrentPage - 1) * ItemsPerPage).Take(ItemsPerPage).ToList();
+   
 
-    // Check if we can go back or forward in pagination
-    private bool CanGoBack => CurrentPage > 1;
-    private bool CanGoForward => CurrentPage < TotalPages;
+
 
     [Inject]
-    public ItemRepository ItemRepository1 { get; set; }
+    public ApiService apiService { get; set; }
 
     protected override void OnInitialized()
     {
-        var obj = ItemRepository1.GetItems();
-        foreach (var i in obj)
+
+        DataTable dtTemp = apiService.GetDataTableDynamically("items");
+
+        if (dtTemp.Rows.Count > 0)
         {
-            Items.Add(new Item
-                {
-                    ITEM_ID = i.ITEM_ID,
-                    NAME = i.NAME,
-                    DESCRIPTION = i.DESCRIPTION,
-                    PRICE = i.PRICE,
-                    IMAGE_URL = ItemRepository1.getItemImageById(i.ITEM_ID)
-                });
+            foreach (DataRow dr in dtTemp.Rows)
+            {
+                AllItems.Add(new Item
+                    {
+                        ITEM_ID = dr["itemId"].ToString(),
+                        NAME = dr["name"].ToString(),
+                        DESCRIPTION = dr["description"].ToString(),
+                        PRICE = dr["price"].ToString(),
+                        IMAGE_URL = dr["imageUrl"].ToString()
+                    });
+
+
+            }
         }
+
+
     }
 
-    // Open item details popup
+  
     private void OpenPopup(Item item)
     {
         SelectedItem = item;
@@ -285,28 +371,34 @@
         Quantity = 1;
     }
 
-    // Close item details popup
+  
     private void ClosePopup()
     {
         ShowPopup = false;
     }
 
-    // Add item to cart
     private void AddToCart()
     {
-        ItemRepository1.AddToCart(new CartItem
-            {
-                ITEM_ID = SelectedItem.ITEM_ID,
-                NAME = SelectedItem.NAME,
-                IMAGE_URL = SelectedItem.IMAGE_URL,
-                QUANTITY = Quantity
-            });
 
-        Console.WriteLine($"Added {SelectedItem.NAME} (Quantity: {Quantity}) to cart.");
+        var cartItem = new
+        {
+            itemId = Convert.ToInt32(SelectedItem.ITEM_ID),
+            name = SelectedItem.NAME,
+            description = SelectedItem.DESCRIPTION,
+            imageUrl = SelectedItem.IMAGE_URL,
+            quantity = Quantity
+        };
+
+        bool isSuccess = apiService.SendDataToPostApi(cartItem, "addToCart");
+
+
+      if(isSuccess){
+            JSRuntime.InvokeVoidAsync("showAlertI", "cart");
+      }
         ShowPopup = false;
     }
 
-    // Quantity management
+
     private void IncreaseQuantity()
     {
         Quantity++;
@@ -320,30 +412,56 @@
         }
     }
 
-    // Open add item popup
+    private void removeItem(string id)
+    {
+
+        bool isDeleted = apiService.SendReqToDeleteApi(Convert.ToInt32(id), "delete");
+
+        if (isDeleted)
+        {
+            JSRuntime.InvokeVoidAsync("showAlert");
+        }
+    }
+
+   
     private void OpenAddItemPopup()
     {
         ShowAddItemPopup = true;
     }
 
-    // Close add item popup
     private void CloseAddItemPopup()
     {
         ShowAddItemPopup = false;
     }
 
-    // Image selection event handler
-    private async Task OnImageSelected(ChangeEventArgs e)
+   
+    private async Task OnImageSelected(InputFileChangeEventArgs e)
     {
-        var file = (IBrowserFile)e.Value;
+        if (!Directory.Exists("C:/Items"))
+        {
+            Directory.CreateDirectory("C:/Items");
+        }
+
+        var file = e.File; 
         if (file != null)
         {
-            NewItemImage = file.Name; // For now, just store the name
+            var localPath = Path.Combine("C:/Items", file.Name);
+
+         
+            using (var stream = file.OpenReadStream(maxAllowedSize: 10485760)) 
+            using (var fileStream = File.Create(localPath))
+            {
+                await stream.CopyToAsync(fileStream);
+            }
+
+          
+            NewItemImage = file.Name;
+            // e.g., "image1.png"
         }
     }
 
-    // Submit new item to the repository
-    private void SubmitNewItem()
+   
+    private async Task SubmitNewItem()
     {
         if (string.IsNullOrEmpty(NewItemName) || string.IsNullOrEmpty(NewItemDescription))
         {
@@ -351,41 +469,36 @@
             return;
         }
 
-        var newItem = new Item
+        Console.WriteLine("Submitting new item...");
+        Console.WriteLine($"Item Name: {NewItemName}, Description: {NewItemDescription}, Image: {NewItemImage}");
+
+
+        var newItem1 = new{
+            name = NewItemName,
+            description = NewItemDescription,
+            price = NewItemPrice,
+            imageUrl = NewItemImage
+        };
+
+        try
+        {
+            
+            bool isSuccess = apiService.SendDataToPostApi(newItem1, "addNewItem");
+            if (isSuccess)
             {
-                NAME = NewItemName,
-                DESCRIPTION = NewItemDescription,
-                IMAGE_URL = NewItemImage // Placeholder for the uploaded image URL
-            };
+                JSRuntime.InvokeVoidAsync("showAlertI", "newItem");
+            }
 
-        ItemRepository1.AddItem(newItem);
-        Items.Add(newItem);
-        Console.WriteLine($"New item added: {newItem.NAME}");
-        ShowAddItemPopup = false;
-    }
 
-    // Pagination logic
-    private void GoToPage(int page)
-    {
-        if (page >= 1 && page <= TotalPages)
+           ShowAddItemPopup = false;
+        }
+        catch (Exception ex)
         {
-            CurrentPage = page;
+            Console.WriteLine($"Error while submitting item: {ex.Message}");
         }
     }
 
-    private void GoToPreviousPage()
-    {
-        if (CanGoBack)
-        {
-            CurrentPage--;
-        }
-    }
+  
 
-    private void GoToNextPage()
-    {
-        if (CanGoForward)
-        {
-            CurrentPage++;
-        }
-    }
+ 
 }
