@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 public class Shashank<T> : ICollection<T>, IEnumerable<T>, IReadOnlyList<T>
 {
-    // Node class to represent each element in the linked list
+    // Node class to represent each element in the linked listss
     private class Node
     {
         public T Value;    // Value stored in the node
