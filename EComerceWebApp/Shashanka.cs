@@ -4,11 +4,11 @@ using System.Collections.Generic;
 
 public class Shashank<T> : ICollection<T>, IEnumerable<T>, IReadOnlyList<T>
 {
-    
+    // Node class to represent each element in the linked list
     private class Node
     {
-        public T Value;   
-        public Node Next; 
+        public T Value;    // Value stored in the node
+        public Node Next;  // Reference to the next node
 
         public Node(T value)
         {
@@ -17,11 +17,11 @@ public class Shashank<T> : ICollection<T>, IEnumerable<T>, IReadOnlyList<T>
         }
     }
 
-    private Node head; 
-    private Node tail; 
-    private int count; 
+    private Node head; // Head (start) of the list
+    private Node tail; // Tail (end) of the list
+    private int count; // Number of elements in the list
 
-
+    // Constructor
     public Shashank()
     {
         head = null;
@@ -29,7 +29,7 @@ public class Shashank<T> : ICollection<T>, IEnumerable<T>, IReadOnlyList<T>
         count = 0;
     }
 
-    
+
     public void Add(T item)
     {
         var newNode = new Node(item);
@@ -56,7 +56,7 @@ public class Shashank<T> : ICollection<T>, IEnumerable<T>, IReadOnlyList<T>
         {
             if (EqualityComparer<T>.Default.Equals(current.Value, item))
             {
-                if (previous == null) 
+                if (previous == null) // Removing the head
                 {
                     head = current.Next;
                     if (head == null) // If list becomes empty
@@ -111,7 +111,6 @@ public class Shashank<T> : ICollection<T>, IEnumerable<T>, IReadOnlyList<T>
         count++;
     }
 
-
     public void RemoveAt(int index)
     {
         if (index < 0 || index >= count)
@@ -137,7 +136,7 @@ public class Shashank<T> : ICollection<T>, IEnumerable<T>, IReadOnlyList<T>
         count--;
     }
 
-   
+
     public T this[int index]
     {
         get
@@ -153,7 +152,7 @@ public class Shashank<T> : ICollection<T>, IEnumerable<T>, IReadOnlyList<T>
         }
     }
 
-    // Check if the list contains an item
+
     public bool Contains(T item)
     {
         foreach (var element in this)
@@ -162,6 +161,23 @@ public class Shashank<T> : ICollection<T>, IEnumerable<T>, IReadOnlyList<T>
                 return true;
         }
         return false;
+    }
+
+    public void CopyTo(T[] array, int arrayIndex)
+    {
+        if (array == null)
+            throw new ArgumentNullException(nameof(array));
+        if (arrayIndex < 0)
+            throw new ArgumentOutOfRangeException(nameof(arrayIndex));
+        if (array.Length - arrayIndex < count)
+            throw new ArgumentException("The destination array is too small.");
+
+        Node current = head;
+        while (current != null)
+        {
+            array[arrayIndex++] = current.Value;
+            current = current.Next;
+        }
     }
 
     // Clear the list
